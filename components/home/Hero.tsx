@@ -1,78 +1,189 @@
-import Link from "next/link";
+"use client";
+
+import { Search } from "lucide-react";
 import Image from "next/image";
-import { Star, Users } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
+
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandEmpty,
+} from "@/components/ui/command";
+
+interface IServiceProvider {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  profession: string;
+  hourlyRate: string;
+  location: string;
+}
 
 export default function Hero() {
+  const [results, setResults] = React.useState<IServiceProvider[]>([]);
+  const [query, setQuery] = React.useState("");
+  const [showDropdown, setShowDropdown] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Close dropdown & clear results when query is empty
+  React.useEffect(() => {
+    if (query.trim() === "") {
+      setResults([]);
+      setShowDropdown(false);
+    }
+  }, [query]);
+
+  // Outside click closes dropdown
+  React.useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  // Optional: simple debounce to reduce API calls
+  const debounceRef = React.useRef<number | null>(null);
+  const handleSearch = (value: string) => {
+    setQuery(value);
+
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+    }
+
+    // Debounce 250ms
+    debounceRef.current = window.setTimeout(async () => {
+      if (value.trim() === "") {
+        // ensure clearing if user removed text
+        setResults([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BASEURL
+          }/service-providers/search?searchTerm=${encodeURIComponent(value)}`
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch search results");
+
+        const data = await res.json();
+        setResults(Array.isArray(data.data) && data.success ? data.data : []);
+        // show dropdown even if no results so CommandEmpty can display
+        setShowDropdown(true);
+      } catch (error) {
+        console.error("Search error:", error);
+        setResults([]);
+        setShowDropdown(true);
+      }
+    }, 250);
+  };
+
   return (
-    <>
-      <section className="relative py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="animate-fade-in space-y-8">
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary font-bold leading-tight">
-                Find Trusted Local Service Providers Near You
-              </h1>
-              <p className="text-lg max-w-xl">
-                Connect with verified electricians, plumbers, cleaners, and
-                other skilled professionals for any job — quickly and reliably.
-              </p>
-            </div>
+    <section className="relative bg-gradient-to-b from-sky-200 via-white to-gray-100 dark:from-black dark:via-slate-900 dark:to-slate-800">
+      <div className="mx-auto w-full max-w-7xl px-5 py-14 md:px-10 md:py-18">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="inline-block mb-4 border border-black dark:border-white px-3 py-1 rounded-2xl">
+            Trusted by 10,000+ Client
+          </p>
+          <h1 className="mb-6 text-4xl font-bold md:text-6xl">
+            Find the Perfect Personal Trainer Near You
+          </h1>
+          <p className="mb-6 text-sm text-gray-500 sm:text-xl lg:mb-8">
+            Get matched with skilled trainers for strength, weight loss,
+            flexibility, or overall wellness—anytime, anywhere.
+          </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 text-center">
-              <Link
-                href="/service-providers"
-                className="cursor-pointer px-4 py-2 bg-lime text-lime-foreground rounded"
-              >
-                Book a Service Now
-              </Link>
-              <Link
-                href="/signup"
-                className="cursor-pointer px-4 py-2 border rounded"
-              >
-                Register Yourself
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="flex items-center gap-12 pt-8 border-t">
-              <div className="flex items-center gap-4">
-                <Users className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">10k+</p>
-                  <p className="text-sm text-muted-foreground">
-                    Customers Globally*
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Star className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">4.8</p>
-                  <p className="text-sm text-muted-foreground">
-                    Service Rating*
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Image */}
-          <div className="relative animate-slide-up">
-            <div className="relative">
-              <Image
-                src="/hero-img.jpg"
-                alt="Professional service workers"
-                width={512}
-                height={360}
-                className="w-full h-auto object-cover rounded-2xl shadow-elegant"
+          {/* Search Bar */}
+          <div className="relative max-w-lg mx-auto" ref={containerRef}>
+            <div className="flex items-center gap-2 border rounded-xl px-3 py-3 bg-white dark:bg-slate-900 shadow-sm transition focus-within:ring-2 focus-within:ring-blue-500">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="What service are you looking for?"
+                className="w-full bg-transparent outline-none text-sm md:text-base text-gray-800 dark:text-gray-200 placeholder-gray-400"
               />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-primary/15 to-transparent" />
+              <button className="px-3 py-1 cursor-pointer rounded-lg bg-black text-white">
+                Search
+              </button>
             </div>
+
+            {showDropdown && (
+              <div className="absolute mt-2 w-full rounded-xl shadow-lg border bg-white dark:bg-slate-900 z-50">
+                <Command className="w-full">
+                  <CommandList className="max-h-60 overflow-y-auto">
+                    {results.length > 0 ? (
+                      <CommandGroup heading="Service Providers">
+                        {results.map((provider) => (
+                          <CommandItem
+                            key={provider._id}
+                            className="cursor-pointer flex flex-col items-start gap-1 p-4"
+                          >
+                            <Link
+                              href={`/service-providers/${provider._id}`}
+                              className="w-full"
+                              onClick={() => {
+                                setShowDropdown(false);
+                                // optionally setQuery to provider name if you want:
+                                // setQuery(`${provider.firstName} ${provider.lastName}`)
+                              }}
+                            >
+                              <p className="font-semibold">
+                                {provider.firstName} {provider.lastName}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {provider.profession}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Rate: {provider.hourlyRate}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {provider.location}
+                              </p>
+                            </Link>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ) : (
+                      <CommandEmpty>No results found.</CommandEmpty>
+                    )}
+                  </CommandList>
+                </Command>
+              </div>
+            )}
           </div>
         </div>
-      </section>
-    </>
+
+        {/* CTA */}
+        <div className="pt-6">
+          <div className="flex flex-wrap flex-row items-center justify-center gap-4 mx-auto">
+            <Image
+              src={"/play-btn.svg"}
+              alt="Google Play Button"
+              width={136}
+              height={64}
+              className="object-cover cursor-pointer"
+            />
+            <Image
+              src={"/store-btn.svg"}
+              alt="App Store Button"
+              width={136}
+              height={64}
+              className="object-cover cursor-pointer"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

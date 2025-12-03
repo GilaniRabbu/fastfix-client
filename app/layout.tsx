@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Roboto } from "next/font/google";
 import { Toaster } from "sonner";
 import ReduxProvider from "@/redux/ReduxProvider";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
@@ -7,7 +7,7 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import "./globals.css";
 
-const inter = Inter({
+const roboto = Roboto({
   weight: ["500"],
   subsets: ["latin"],
 });
@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${roboto.className} antialiased`}>
         <ReduxProvider>
           <ThemeProvider
             attribute="class"
