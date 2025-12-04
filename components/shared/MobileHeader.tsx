@@ -3,42 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/redux/slice/authSlice";
-
-interface Category {
-  name: string;
-  total: number;
-}
 
 interface MobileHeaderProps {
   closeSidebar: () => void;
 }
 
 export default function MobileHeader({ closeSidebar }: MobileHeaderProps) {
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [loading, setLoading] = React.useState(true);
   const user = useSelector(selectCurrentUser);
-  console.log(user);
-
-  React.useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_BASEURL}/service-providers/categories`,
-          { withCredentials: true }
-        );
-        setCategories(res.data.data);
-      } catch (err) {
-        console.error("Failed to fetch categories", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   const navigationItems = [
     {
@@ -48,11 +21,28 @@ export default function MobileHeader({ closeSidebar }: MobileHeaderProps) {
     {
       title: "Services",
       href: "/service-providers",
-      items: categories.map((cat) => ({
-        title: cat.name,
-        href: `/service-providers/categories/${cat.name}`,
-        description: `${cat.total.toLocaleString()} Providers`,
-      })),
+      items: [
+        {
+          title: "Fitness",
+          href: "/service-providers?category=fitness",
+          description: "Find personal trainers for strength and fitness",
+        },
+        {
+          title: "Yoga",
+          href: "/service-providers?category=yoga",
+          description: "Hire certified yoga and flexibility trainers",
+        },
+        {
+          title: "Nutrition",
+          href: "/service-providers?category=nutrition",
+          description: "Get expert dietary and wellness coaching",
+        },
+        {
+          title: "Therapy",
+          href: "/service-providers?category=therapy",
+          description: "Book chiropractors and physical therapy experts",
+        },
+      ],
     },
     {
       title: "Actions",
@@ -79,37 +69,33 @@ export default function MobileHeader({ closeSidebar }: MobileHeaderProps) {
 
   return (
     <div className="flex flex-col space-y-3">
-      {loading ? (
-        <p>Loading Navigation...</p>
-      ) : (
-        <div className="flex flex-col space-y-3 pb-3">
-          {navigationItems.map((item) => (
-            <div key={item.title}>
-              <Link
-                href={item.href}
-                onClick={closeSidebar}
-                className="block text-lg font-medium hover:text-foreground/80"
-              >
-                {item.title}
-              </Link>
-              {item.items && (
-                <div className="ml-2 flex flex-col space-y-1">
-                  {item.items.map((subItem) => (
-                    <Link
-                      key={subItem.title}
-                      href={subItem.href}
-                      onClick={closeSidebar}
-                      className="block text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      - {subItem.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col space-y-3 pb-3">
+        {navigationItems.map((item) => (
+          <div key={item.title}>
+            <Link
+              href={item.href}
+              onClick={closeSidebar}
+              className="block text-lg font-medium hover:text-foreground/80"
+            >
+              {item.title}
+            </Link>
+            {item.items && (
+              <div className="ml-2 flex flex-col space-y-1">
+                {item.items.map((subItem) => (
+                  <Link
+                    key={subItem.title}
+                    href={subItem.href}
+                    onClick={closeSidebar}
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    - {subItem.title}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
       <div className="pb-6">
         <div className="flex flex-col space-y-3">

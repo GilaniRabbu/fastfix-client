@@ -146,19 +146,24 @@ export default function DesktopHeader() {
       href: "/service-providers",
       items: [
         {
-          title: "Hire A Service Provider",
-          href: "/service-providers",
-          description: "Find and connect with verified professionals",
+          title: "Fitness",
+          href: "/service-providers?category=fitness",
+          description: "Find personal trainers for strength and fitness",
         },
         {
-          title: "Become A Service Provider",
-          href: "/signup",
-          description: "Join our platform and offer your services",
+          title: "Yoga",
+          href: "/service-providers?category=yoga",
+          description: "Hire certified yoga and flexibility trainers",
         },
         {
-          title: "Contact Support",
-          href: "/contact",
-          description: "Reach out with your queries, issues, or feedback",
+          title: "Nutrition",
+          href: "/service-providers?category=nutrition",
+          description: "Get expert dietary and wellness coaching",
+        },
+        {
+          title: "Therapy",
+          href: "/service-providers?category=therapy",
+          description: "Book chiropractors and physical therapy experts",
         },
       ],
     },
